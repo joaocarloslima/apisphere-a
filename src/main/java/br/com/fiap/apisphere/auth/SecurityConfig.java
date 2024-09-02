@@ -23,6 +23,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/users").permitAll()
                         .requestMatchers(HttpMethod.GET, "/posts").authenticated()
                         .requestMatchers(HttpMethod.GET, "/users/profile").authenticated()
+                        .requestMatchers(HttpMethod.POST, "/users/avatar").authenticated()
         );
 
         http.addFilterBefore(authorizationFilter, UsernamePasswordAuthenticationFilter.class);

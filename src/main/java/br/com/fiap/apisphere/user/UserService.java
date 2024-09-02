@@ -33,4 +33,10 @@ public class UserService {
                 .map(UserProfileResponse::new)
                 .orElseThrow( () -> new UsernameNotFoundException("User not found"));
     }
+
+    public void updateAvatar(String email, String avatarURL) {
+        var user = repository.findByEmail(email).orElseThrow(() -> new UsernameNotFoundException("User not found"));
+        user.setAvatar(avatarURL);
+        repository.save(user);
+    }
 }
