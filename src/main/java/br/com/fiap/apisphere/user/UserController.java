@@ -4,14 +4,16 @@ import br.com.fiap.apisphere.user.dto.UserProfileResponse;
 import br.com.fiap.apisphere.user.dto.UserRequest;
 import br.com.fiap.apisphere.user.dto.UserResponse;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.UrlResource;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.util.UriComponentsBuilder;
 
-import java.io.InputStream;
-import java.nio.file.Files;
+import java.net.MalformedURLException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
@@ -23,7 +25,11 @@ public class UserController {
     UserService service;
 
     @GetMapping
-    public List<User> findAll(){
+    public List<User> search(@RequestParam(required = false) String name){
+        if(name != null){
+            return service.search(name);
+        }
+
         return  service.findAll();
     }
 
@@ -49,31 +55,21 @@ public class UserController {
 
     @PostMapping("avatar")
     public void uploadAvatar(@RequestBody MultipartFile file){
-        if(file.isEmpty()){
-            throw new RuntimeException("O arquivo não pode estar vazio");
-        }
-
         var email = SecurityContextHolder.getContext().getAuthentication().getPrincipal().toString();
+        service.uploadAvatar(email, file);
+    }
 
-        Path destinationRoot = Path.of("src/main/resources/static/avatars/");
-        Path destinationFile = destinationRoot
-                .resolve(Paths.get( System.currentTimeMillis() + email + file.getOriginalFilename()))
-                .normalize()
-                .toAbsolutePath();
-
-        try(InputStream is = file.getInputStream()){
-            Files.copy(is, destinationFile);
-            System.out.println("Arquivo copiado");
-
-            var avatarURL = "http://localhost:8082/avatars/" + destinationFile.getFileName();
-            service.updateAvatar(email, avatarURL);
-
-        }catch (Exception e){
-            System.out.println(e.getMessage());
+    @GetMapping("/avatars/{filename}")
+    public ResponseEntity<Resource> getAvatarFile(@PathVariable String filename){
+        try {
+            Path file = Paths.get( "src/main/resources/static/avatars/" + filename );
+            Resource resource = new UrlResource(file.toUri());
+            return ResponseEntity.ok()
+                    .contentType(MediaType.IMAGE_JPEG)
+                    .body(resource);
+        } catch (MalformedURLException e) {
+            return ResponseEntity.notFound().build();
         }
-
-
-
 
     }
 

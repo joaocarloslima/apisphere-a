@@ -19,11 +19,9 @@ public class SecurityConfig {
         http.authorizeHttpRequests(auth ->
                 auth
                         .requestMatchers(HttpMethod.POST, "/login").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/users").permitAll()
                         .requestMatchers(HttpMethod.POST, "/users").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/posts").authenticated()
-                        .requestMatchers(HttpMethod.GET, "/users/profile").authenticated()
-                        .requestMatchers(HttpMethod.POST, "/users/avatar").authenticated()
+                        .requestMatchers(HttpMethod.GET, "/users/avatars/**").permitAll()
+                        .anyRequest().authenticated()
         );
 
         http.addFilterBefore(authorizationFilter, UsernamePasswordAuthenticationFilter.class);
